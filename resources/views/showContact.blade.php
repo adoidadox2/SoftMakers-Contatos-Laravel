@@ -68,7 +68,7 @@
   </head>
   <body>
     <div class="container">
-      <img src="{{ $contact->image }}" alt="avatar" class="avatar" />
+      <img src="{{ $contact->image_url }}" alt="avatar" class="avatar" />
 
       <div>
         <div class="fields">

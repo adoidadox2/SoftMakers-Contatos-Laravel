@@ -72,9 +72,9 @@
 
         @foreach ($contacts as $contact)
         <tr>
-          <td>zs
+          <td>
             <a href="{{route('contacts.show', ['contact' => $contact->id])}}">
-              <img src="{{ $contact->image }}" alt="avatar" class="avatar" />
+              <img src="{{  $contact->image_url  }}" alt="avatar" class="avatar" />
             </a>
           </td>
           <td>
