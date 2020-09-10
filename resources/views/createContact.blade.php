@@ -67,13 +67,14 @@
     <div class="container">
       <form
         method="POST"
-        action="/user"
+        action="{{route('contacts.store')}}"
         class="form"
         enctype="multipart/form-data"
       >
-        <a href="/user">
-          <button type="button" class="list-button">Listar Contatos</button>
-        </a>
+      @csrf
+      <a href="{{route('contacts.index')}}">
+        <button type="button" class="list-button">Listar Contatos</button>
+      </a>
         <h1>Adicionar Contatos</h1>
         <input type="file" name="avatar" accept="image/*" class="input-field" />
         <input
