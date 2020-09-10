@@ -9,6 +9,7 @@ class Contact extends Model
 {
     use HasFactory;
 
+    public $image_url = null;
 
     protected $fillable = [
         'name', 'last_name', 'image','phone','email',
