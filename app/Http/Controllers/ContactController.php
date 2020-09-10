@@ -6,8 +6,6 @@ use App\Models\Address;
 use App\Models\Contact;
 use Illuminate\Http\Request;
 
-use function PHPSTORM_META\map;
-
 class ContactController extends Controller
 {
     /**
@@ -19,19 +17,23 @@ class ContactController extends Controller
     {
         $contacts=Contact::select('id','name','last_name','phone','image')->orderBy('name','asc')->get();
 
-    //    $serializedContacts = $contacts.map(function($contact){
-    //         return {
-    //            $this->id= $contact->id;
-    //             $this->name -> $contact->name;
-    //             $last_name: $contact->last_name;
-    //             $phone: $contact->phone;
-    //             $image_url: $contact->image
-    //               ? `http://localhost:${process.env.PORT}/uploads/${contact.image}`
-    //               : null;
-    //           };
-    //     });
+       $serializedContacts = $contacts->map(function($contact){
+               
+                 $contact->id= $contact->id;
+                 $contact->name = $contact->name;
+                 $contact->last_name = $contact->last_name;
+                 $contact->phone= $contact->phone;
+                 $contact->image_url= $contact->image
+                  ? url('storage/'.$contact->image)
+                  : null;
+                
+                  return $contact;  
+              
+        });
 
-        return view('indexContact',['contacts'=> $contacts]);
+        
+        
+        return view('indexContact',['contacts'=> $serializedContacts]);
     }
     
     /**
@@ -59,7 +61,9 @@ class ContactController extends Controller
         $contact->last_name=$request->last_name;
         $contact->phone=$request->phone;
         $contact->email=$request->email;
-        $contact->image=$request->image;
+        if($request->file('avatar')){
+            $contact->image=$request->file('avatar')->store('uploads');
+        }
 
         $address->cep=$request->cep;
         $address->state=$request->state;
@@ -84,6 +88,10 @@ class ContactController extends Controller
     public function show(Contact $contact)
     {
         //
+            $contact->image_url= $contact->image
+             ? url('storage/'.$contact->image)
+             : null;
+           
         return view('showContact', ['contact'=>$contact]);
     }
 
@@ -108,11 +116,21 @@ class ContactController extends Controller
     public function update(Request $request, Contact $contact)
     {
         $address = Address::where('id',$contact->address_id)->first();
+
         $contact->name=$request->name;
         $contact->last_name=$request->last_name;
         $contact->phone=$request->phone;
         $contact->email=$request->email;
-        $contact->image=$request->image;
+
+        if ($request->file('avatar')) {
+            if ($contact->image) {
+              $oldImage = $contact->image;
+      
+              unlink(storage_path('app/public/'.$oldImage));
+            }
+      
+            $contact->image=$request->file('avatar')->store('uploads');
+          }
 
         $address->cep=$request->cep;
         $address->state=$request->state;
@@ -137,6 +155,26 @@ class ContactController extends Controller
     {
         //
         $contact->delete();
+
+        $addresses=Address::all();
+        $addressesArray = $addresses->load('residents');
+
+        $emptyAddresses = $addressesArray->filter(
+            function ($address){
+                 return !count($address->residents);
+                
+            }
+          );
+
+          $emptyAddressesIDs = $emptyAddresses->map(function($address){
+            return $address->id;
+          });
+
+          if($emptyAddressesIDs){
+              $emptyAddressesIDs->each(function($id){
+                 Address::where('id', $id)->delete();
+              });
+          }
 
         return redirect()->route('contacts.index');
     }
